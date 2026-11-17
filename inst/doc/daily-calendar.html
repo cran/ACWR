@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+
+
+<title>Computing the ACWR on a daily calendar</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+
+<style type="text/css">
+code {
+white-space: pre;
+}
+.sourceCode {
+overflow: visible;
+}
+</style>
+<style type="text/css" data-origin="pandoc">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Computing the ACWR on a daily calendar</h1>
+
+
+
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(ACWR)</span></code></pre></div>
+<p>Since version 0.2.0, every method in ACWR works on a <strong>daily
+calendar</strong>. Each athlete’s sessions are placed on a series of
+days from the first to the last date: sessions on the same day are
+summed, and days without a session count as a load of 0. This vignette
+shows what that means in practice.</p>
+<div id="the-data" class="section level2">
+<h2>The data</h2>
+<p><code>training_load_rest</code> holds the simulated training load of
+three athletes over eight weeks, with rest days:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="fu">data</span>(<span class="st">&quot;training_load_rest&quot;</span>, <span class="at">package =</span> <span class="st">&quot;ACWR&quot;</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a><span class="fu">head</span>(training_load_rest)</span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a><span class="co">#&gt;   ID Week Day  TL Training_Date</span></span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a><span class="co">#&gt; 1  1    1   1 439    2022-01-03</span></span>
+<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a><span class="co">#&gt; 2  1    1   2 419    2022-01-04</span></span>
+<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a><span class="co">#&gt; 3  1    1   4 396    2022-01-06</span></span>
+<span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a><span class="co">#&gt; 4  1    1   6 391    2022-01-08</span></span>
+<span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a><span class="co">#&gt; 5  1    2   8 446    2022-01-10</span></span>
+<span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a><span class="co">#&gt; 6  1    2   9 452    2022-01-11</span></span>
+<span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a></span>
+<span id="cb2-11"><a href="#cb2-11" tabindex="-1"></a><span class="co"># Sessions per week</span></span>
+<span id="cb2-12"><a href="#cb2-12" tabindex="-1"></a><span class="fu">table</span>(<span class="at">ID =</span> training_load_rest<span class="sc">$</span>ID, <span class="at">Week =</span> training_load_rest<span class="sc">$</span>Week)</span>
+<span id="cb2-13"><a href="#cb2-13" tabindex="-1"></a><span class="co">#&gt;    Week</span></span>
+<span id="cb2-14"><a href="#cb2-14" tabindex="-1"></a><span class="co">#&gt; ID  1 2 3 4 5 6 7 8</span></span>
+<span id="cb2-15"><a href="#cb2-15" tabindex="-1"></a><span class="co">#&gt;   1 4 4 4 4 4 4 4 4</span></span>
+<span id="cb2-16"><a href="#cb2-16" tabindex="-1"></a><span class="co">#&gt;   2 6 6 6 6 0 6 6 6</span></span>
+<span id="cb2-17"><a href="#cb2-17" tabindex="-1"></a><span class="co">#&gt;   3 3 3 3 3 3 3 3 6</span></span></code></pre></div>
+<p>Athlete 1 trains 4 days a week. Athlete 2 trains 5 days a week with a
+double session on Wednesdays (6 sessions) and does not train in week 5.
+Athlete 3 trains 3 days a week and 6 days in the last week.</p>
+</div>
+<div id="the-three-methods" class="section level2">
+<h2>The three methods</h2>
+<p>For each day <em>t</em>, with <em>w</em> the daily load:</p>
+<p>RAC and RAU follow Windt &amp; Gabbett (2019):</p>
+<ul>
+<li><strong>RAC</strong> (coupled): acute = sum of <em>w</em> over days
+<em>t</em>-6 to <em>t</em>; chronic = sum over days <em>t</em>-27 to
+<em>t</em>, divided by 4.</li>
+<li><strong>RAU</strong> (uncoupled): same acute load; chronic = sum
+over days <em>t</em>-27 to <em>t</em>-7, divided by 3.</li>
+<li><strong>EWMA</strong>: <em>E<sub>t</sub></em> =
+<em>w<sub>t</sub></em> λ + (1 - λ) <em>E<sub>t-1</sub></em>, with λ = 2
+/ (<em>N</em> + 1), <em>N</em> = 7 (acute) and 28 (chronic), updated
+every calendar day including rest days (Williams et al., 2017; Murray et
+al., 2017).</li>
+</ul>
+<p>RAC and RAU acute and chronic loads are weekly-equivalent sums, so
+they read as “load per week”. <code>ACWR()</code> computes all three for
+every athlete and returns one row per session, in the original
+order:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a>res <span class="ot">&lt;-</span> <span class="fu">ACWR</span>(<span class="at">db =</span> training_load_rest,</span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>            <span class="at">ID =</span> <span class="st">&quot;ID&quot;</span>,</span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a>            <span class="at">TL =</span> <span class="st">&quot;TL&quot;</span>,</span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a>            <span class="at">days =</span> <span class="st">&quot;Day&quot;</span>,</span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a>            <span class="at">training_dates =</span> <span class="st">&quot;Training_Date&quot;</span>,</span>
+<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a>            <span class="at">ACWR_method =</span> <span class="fu">c</span>(<span class="st">&quot;EWMA&quot;</span>, <span class="st">&quot;RAC&quot;</span>, <span class="st">&quot;RAU&quot;</span>))</span>
+<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a></span>
+<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a><span class="co"># Last session of each athlete</span></span>
+<span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a>last <span class="ot">&lt;-</span> res[<span class="sc">!</span><span class="fu">duplicated</span>(res<span class="sc">$</span>ID, <span class="at">fromLast =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a>            <span class="fu">c</span>(<span class="st">&quot;ID&quot;</span>, <span class="st">&quot;Training_Date&quot;</span>, <span class="st">&quot;EWMA_ACWR&quot;</span>, <span class="st">&quot;RAC_ACWR&quot;</span>, <span class="st">&quot;RAU_ACWR&quot;</span>)]</span>
+<span id="cb3-11"><a href="#cb3-11" tabindex="-1"></a><span class="fu">format</span>(last, <span class="at">digits =</span> <span class="dv">3</span>)</span>
+<span id="cb3-12"><a href="#cb3-12" tabindex="-1"></a><span class="co">#&gt;     ID Training_Date EWMA_ACWR RAC_ACWR RAU_ACWR</span></span>
+<span id="cb3-13"><a href="#cb3-13" tabindex="-1"></a><span class="co">#&gt; 32   1    2022-02-26      1.01    0.939     0.92</span></span>
+<span id="cb3-14"><a href="#cb3-14" tabindex="-1"></a><span class="co">#&gt; 74   2    2022-02-26      1.12    1.259     1.38</span></span>
+<span id="cb3-15"><a href="#cb3-15" tabindex="-1"></a><span class="co">#&gt; 101  3    2022-02-26      1.53    1.698     2.21</span></span></code></pre></div>
+<p>Athlete 3, who doubled the number of sessions in the last week, shows
+the highest ratios.</p>
+</div>
+<div id="what-changes-versus-0.1.0" class="section level2">
+<h2>What changes versus 0.1.0</h2>
+<p>Version 0.1.0 averaged the load per <em>session</em> inside each
+window and decayed EWMA once per <em>session</em>, ignoring the dates.
+Results were only correct when there was exactly one session every
+day.</p>
+<p>Take an athlete who trains 3 days a week (500 AU per session) for
+four weeks and then 6 days in week 5. The weekly load doubles, from 1500
+to 3000 AU, but the load per session stays at 500 AU:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a>day <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">2</span>, <span class="dv">4</span>, <span class="dv">7</span>, <span class="dv">9</span>, <span class="dv">11</span>, <span class="dv">14</span>, <span class="dv">16</span>, <span class="dv">18</span>, <span class="dv">21</span>, <span class="dv">23</span>, <span class="dv">25</span>, <span class="dv">28</span><span class="sc">:</span><span class="dv">33</span>)</span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>dates <span class="ot">&lt;-</span> <span class="fu">as.Date</span>(<span class="st">&quot;2024-01-01&quot;</span>) <span class="sc">+</span> day</span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a>load <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="dv">500</span>, <span class="fu">length</span>(day))</span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a></span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a>rac <span class="ot">&lt;-</span> <span class="fu">RAC</span>(<span class="at">TL =</span> load, <span class="at">training_dates =</span> dates)</span>
+<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a>rau <span class="ot">&lt;-</span> <span class="fu">RAU</span>(<span class="at">TL =</span> load, <span class="at">training_dates =</span> dates)</span>
+<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a>ewma <span class="ot">&lt;-</span> <span class="fu">EWMA</span>(<span class="at">TL =</span> load, <span class="at">training_dates =</span> dates)</span>
+<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a></span>
+<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a><span class="co"># Ignoring the dates reproduces the per-session EWMA of 0.1.0</span></span>
+<span id="cb4-10"><a href="#cb4-10" tabindex="-1"></a>ewma_sessions <span class="ot">&lt;-</span> <span class="fu">suppressMessages</span>(<span class="fu">EWMA</span>(<span class="at">TL =</span> load))</span>
+<span id="cb4-11"><a href="#cb4-11" tabindex="-1"></a></span>
+<span id="cb4-12"><a href="#cb4-12" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="fu">length</span>(load)</span>
+<span id="cb4-13"><a href="#cb4-13" tabindex="-1"></a><span class="fu">data.frame</span>(</span>
+<span id="cb4-14"><a href="#cb4-14" tabindex="-1"></a>  <span class="at">method =</span> <span class="fu">c</span>(<span class="st">&quot;RAC&quot;</span>, <span class="st">&quot;RAU&quot;</span>, <span class="st">&quot;EWMA&quot;</span>),</span>
+<span id="cb4-15"><a href="#cb4-15" tabindex="-1"></a>  <span class="at">version_0.1.0 =</span> <span class="fu">c</span>(<span class="fl">1.00</span>, <span class="fl">1.86</span>, <span class="fu">round</span>(ewma_sessions<span class="sc">$</span>EWMA_ACWR[n], <span class="dv">2</span>)),</span>
+<span id="cb4-16"><a href="#cb4-16" tabindex="-1"></a>  <span class="at">version_0.2.0 =</span> <span class="fu">round</span>(<span class="fu">c</span>(rac<span class="sc">$</span>RAC_ACWR[n], rau<span class="sc">$</span>RAU_ACWR[n],</span>
+<span id="cb4-17"><a href="#cb4-17" tabindex="-1"></a>                          ewma<span class="sc">$</span>EWMA_ACWR[n]), <span class="dv">2</span>)</span>
+<span id="cb4-18"><a href="#cb4-18" tabindex="-1"></a>)</span>
+<span id="cb4-19"><a href="#cb4-19" tabindex="-1"></a><span class="co">#&gt;   method version_0.1.0 version_0.2.0</span></span>
+<span id="cb4-20"><a href="#cb4-20" tabindex="-1"></a><span class="co">#&gt; 1    RAC          1.00          1.60</span></span>
+<span id="cb4-21"><a href="#cb4-21" tabindex="-1"></a><span class="co">#&gt; 2    RAU          1.86          2.00</span></span>
+<span id="cb4-22"><a href="#cb4-22" tabindex="-1"></a><span class="co">#&gt; 3   EWMA          1.00          1.33</span></span></code></pre></div>
+<p>The RAC and RAU values of 0.1.0 are quoted from <code>NEWS.md</code>,
+as that code is no longer in the package. With per-session averages,
+doubling the number of sessions is invisible: the coupled ratio stays at
+1. On the daily calendar the acute week is 3000 AU and the coupled
+chronic load 1875 AU per week, a ratio of 1.6.</p>
+</div>
+<div id="warm-up-period-and-partial-true" class="section level2">
+<h2>Warm-up period and <code>partial = TRUE</code></h2>
+<p>RAC and RAU need 28 days of history, so by default they are
+<code>NA</code> until then:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a>a1 <span class="ot">&lt;-</span> training_load_rest[training_load_rest<span class="sc">$</span>ID <span class="sc">==</span> <span class="dv">1</span>, ]</span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>rac_default <span class="ot">&lt;-</span> <span class="fu">RAC</span>(<span class="at">TL =</span> a1<span class="sc">$</span>TL, <span class="at">training_dates =</span> a1<span class="sc">$</span>Training_Date)</span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a>rac_partial <span class="ot">&lt;-</span> <span class="fu">RAC</span>(<span class="at">TL =</span> a1<span class="sc">$</span>TL, <span class="at">training_dates =</span> a1<span class="sc">$</span>Training_Date,</span>
+<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a>                   <span class="at">partial =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a></span>
+<span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a><span class="fu">data.frame</span>(<span class="at">day =</span> a1<span class="sc">$</span>Day,</span>
+<span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a>           <span class="at">default =</span> <span class="fu">round</span>(rac_default<span class="sc">$</span>RAC_ACWR, <span class="dv">2</span>),</span>
+<span id="cb5-8"><a href="#cb5-8" tabindex="-1"></a>           <span class="at">partial =</span> <span class="fu">round</span>(rac_partial<span class="sc">$</span>RAC_ACWR, <span class="dv">2</span>))[<span class="fu">c</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>, <span class="dv">15</span><span class="sc">:</span><span class="dv">18</span>), ]</span>
+<span id="cb5-9"><a href="#cb5-9" tabindex="-1"></a><span class="co">#&gt;    day default partial</span></span>
+<span id="cb5-10"><a href="#cb5-10" tabindex="-1"></a><span class="co">#&gt; 1    1      NA    1.00</span></span>
+<span id="cb5-11"><a href="#cb5-11" tabindex="-1"></a><span class="co">#&gt; 2    2      NA    1.00</span></span>
+<span id="cb5-12"><a href="#cb5-12" tabindex="-1"></a><span class="co">#&gt; 3    4      NA    1.00</span></span>
+<span id="cb5-13"><a href="#cb5-13" tabindex="-1"></a><span class="co">#&gt; 15  25      NA    0.92</span></span>
+<span id="cb5-14"><a href="#cb5-14" tabindex="-1"></a><span class="co">#&gt; 16  27      NA    0.92</span></span>
+<span id="cb5-15"><a href="#cb5-15" tabindex="-1"></a><span class="co">#&gt; 17  29    0.92    0.92</span></span>
+<span id="cb5-16"><a href="#cb5-16" tabindex="-1"></a><span class="co">#&gt; 18  30    0.92    0.92</span></span></code></pre></div>
+<p>With <code>partial = TRUE</code>, the days available are used and
+rescaled to 7 days (sum x 7 / number of days). This is a choice of the
+package, not of the cited sources, and early values rest on very few
+days: interpret them with care.</p>
+</div>
+<div id="limitations-of-the-acwr" class="section level2">
+<h2>Limitations of the ACWR</h2>
+<p>The package calculates the ACWR as it is described in the literature
+(Gabbett, 2016), but the ratio has well-documented limitations:</p>
+<ul>
+<li><strong>Mathematical coupling.</strong> In the coupled ratio, the
+acute week is also part of the chronic load, which creates a spurious
+correlation between the two and reduces the between-athlete variability
+of the chronic load (Lolli et al., 2019); the coupled ratio can never
+exceed 4 (Windt &amp; Gabbett, 2019).</li>
+<li><strong>Ratio artefacts.</strong> The ACWR behaves as a rescaling of
+the acute load, and adds no predictive value over the acute load alone
+(Impellizzeri et al., 2021). EWMA values depend on the initial load in
+the first weeks (Wang et al., 2020).</li>
+<li><strong>No validated thresholds.</strong> Recommended thresholds
+(e.g. a “sweet spot” of 0.8-1.3) are affected by these limitations and
+should not be used as cut-offs for injury risk (Wang et al., 2020;
+Impellizzeri et al., 2021).</li>
+</ul>
+</div>
+<div id="references" class="section level2">
+<h2>References</h2>
+<ul>
+<li>Gabbett TJ (2016). The training-injury prevention paradox: should
+athletes be training smarter and harder? <em>British Journal of Sports
+Medicine</em>, 50(5), 273-280. <a href="https://doi.org/10.1136/bjsports-2015-095788" class="uri">https://doi.org/10.1136/bjsports-2015-095788</a></li>
+<li>Impellizzeri FM, Woodcock S, Coutts AJ, et al. (2021). What role do
+chronic workloads play in the acute to chronic workload ratio? Time to
+dismiss ACWR and its underlying theory. <em>Sports Medicine</em>, 51(3),
+581-592. <a href="https://doi.org/10.1007/s40279-020-01378-6" class="uri">https://doi.org/10.1007/s40279-020-01378-6</a></li>
+<li>Lolli L, Batterham AM, Hawkins R, et al. (2019). Mathematical
+coupling causes spurious correlation within the conventional
+acute-to-chronic workload ratio calculations. <em>British Journal of
+Sports Medicine</em>, 53(15), 921-922. <a href="https://doi.org/10.1136/bjsports-2017-098110" class="uri">https://doi.org/10.1136/bjsports-2017-098110</a></li>
+<li>Murray NB, Gabbett TJ, Townshend AD, Blanch P (2017). Calculating
+acute:chronic workload ratios using exponentially weighted moving
+averages provides a more sensitive indicator of injury likelihood than
+rolling averages. <em>British Journal of Sports Medicine</em>, 51(9),
+749-754. <a href="https://doi.org/10.1136/bjsports-2016-097152" class="uri">https://doi.org/10.1136/bjsports-2016-097152</a></li>
+<li>Wang C, Vargas JT, Stokes T, et al. (2020). Analyzing activity and
+injury: lessons learned from the acute:chronic workload ratio.
+<em>Sports Medicine</em>, 50(7), 1243-1254. <a href="https://doi.org/10.1007/s40279-020-01280-1" class="uri">https://doi.org/10.1007/s40279-020-01280-1</a></li>
+<li>Williams S, West S, Cross MJ, Stokes KA (2017). Better way to
+determine the acute:chronic workload ratio? <em>British Journal of
+Sports Medicine</em>, 51(3), 209-210. <a href="https://doi.org/10.1136/bjsports-2016-096589" class="uri">https://doi.org/10.1136/bjsports-2016-096589</a></li>
+<li>Windt J, Gabbett TJ (2019). Is it all for naught? What does
+mathematical coupling mean for acute:chronic workload ratios?
+<em>British Journal of Sports Medicine</em>, 53(16), 988-990. <a href="https://doi.org/10.1136/bjsports-2017-098925" class="uri">https://doi.org/10.1136/bjsports-2017-098925</a></li>
+</ul>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
